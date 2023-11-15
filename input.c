@@ -3,6 +3,7 @@
 //
 
 #include "input.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,23 +36,18 @@ void tokenise(InputHandler *pHandler) {
     pHandler->tokenInputSize = count;
 }
 
-
 InputHandler getInputHandler() {
-    InputHandler handler = {
-        .getInput = getInput,
-        .tokenise = tokenise,
-        .getLine = getLine,
-        .line = NULL,
-        .path = getPath()
+    InputHandler handler = {.getInput = getInput,
+                            .tokenise = tokenise,
+                            .getLine = getLine,
+                            .line = NULL,
     };
 
     return handler;
 }
 
-
 void destructInputHandler(InputHandler const *pHandler) {
     free(pHandler->line);
     free(pHandler->tokenisedInput);
-    destructPath(pHandler->path);
     free(pHandler);
 }

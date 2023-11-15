@@ -6,35 +6,38 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
-Path *getPath() {
-    Path *path = malloc(sizeof(Path));
-    if (path != NULL) {
-        // Allocate memory for the directory string.
-        path->currentDir = malloc(sizeof(char) * (strlen(".") + 1));
-        if (path->currentDir != NULL) {
-            strcpy(path->currentDir, ".");
-        } else {
-            // Handle malloc failure; for example, free path and return NULL.
-            free(path);
-            return NULL;
-        }
-    }
-    return path;
-};
+#include "output.h"
+#define BUFF_SIZE 1024
+
+
+Path getPath() {
+    size_t path_size = BUFF_SIZE;
+    char path[BUFF_SIZE];
+    getcwd(path, path_size);
+
+    Path output = {
+    .currentDir  = (char *) malloc(strlen(path)),
+    };
+
+    strncpy(output.currentDir, path, BUFF_SIZE);
+
+    return output;
+
+}
 
 void updateCurrentDirectory(Path *path, char *newPath) {
-    char *oldPath = path->currentDir;
-    path->currentDir = (char *) calloc(strlen(newPath), sizeof(char));
-    strcpy(path->currentDir, oldPath);
-    free(oldPath);
+    char *temp = realloc(path->currentDir, strlen(newPath) + 1);
+    if (temp != NULL) {
+        path->currentDir = temp;
+        strcpy(path->currentDir, newPath);
+    } else {
+        // Handle realloc failure
+        unrecoverableError("Memory allocation failure");
+    }
 }
 
-
-
-void addToCurrentDir(Path *path, char *additionalPath) {
-    strcat(path->currentDir, additionalPath);
-}
 
 void destructPath(Path *path) {
     if (path != NULL) {

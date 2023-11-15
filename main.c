@@ -5,9 +5,12 @@
 #include "commands.h"
 #include "input.h"
 #include "output.h"
+#include "path.h"
 
 int main() {
-    InputHandler  inputHandler = getInputHandler();
+    InputHandler inputHandler = getInputHandler();
+    Path path = getPath();
+
 
     while (true) {
         promptDelim(&inputHandler);

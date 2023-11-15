@@ -6,7 +6,6 @@
 #define SHELL_INPUT_H
 #include <stdio.h>
 
-#include "path.h"
 
 typedef struct InputHandler InputHandler;
 
@@ -18,15 +17,10 @@ struct InputHandler {
     char **tokenisedInput;
     void (*tokenise)(InputHandler *pHandler);
     int tokenInputSize;
-    Path *path;
 };
 
 InputHandler getInputHandler();
 
 void destructInputHandler(InputHandler const *pHandler);
-
-
-
-
 
 #endif  // SHELL_INPUT_H

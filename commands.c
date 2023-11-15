@@ -5,7 +5,7 @@
 #define LINUX "gcc"
 #define OSX "clang"
 
-enum { BUFF_SIZE = 256, DIR_PATH_SIZE = 2064 };
+enum { BUFF_SIZE = 256};
 
 #include "commands.h"
 
@@ -27,7 +27,7 @@ void ls(InputHandler const *pHandler) {
         // longway
     } else {
         char *program = "/bin/ls";
-        char *arguments[] = {program, "-l", pHandler->path->currentDir, NULL};
+        char *arguments[] = {program, "-l", "./", NULL};
         if (execvp(program, arguments) == -1) {
             recoverableError("execvp failed");
             printf("\n");
@@ -37,27 +37,6 @@ void ls(InputHandler const *pHandler) {
 }
 
 void cd(InputHandler const *pHandler) {
-    if (pHandler->tokenisedInput[1][0] == '.') {
-        if (access(pHandler->tokenisedInput[1], F_OK) == 0) {
-            updateCurrentDirectory(pHandler->path, pHandler->tokenisedInput[1]);
-            fprintf(stdout, pHandler->path->currentDir);
-            fflush(stdout);
-        } else {
-            fprintf(stderr, "cant find . directory");
-        }
-    } else {
-        char newpath[DIR_PATH_SIZE];
-        sprintf(newpath, "%s%s", pHandler->path->currentDir,
-                pHandler->tokenisedInput[1]);
-        if (access(newpath, F_OK) == 0) {
-            addToCurrentDir(pHandler->path, pHandler->tokenisedInput[1]);
-            fprintf(stdout, "%s", newpath);
-            fflush(stdout);
-        } else {
-            fprintf(stderr, "cant find relative directory");
-        }
-    }
-
 
 }
 

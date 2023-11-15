@@ -3,15 +3,15 @@
 //
 
 #include "output.h"
+
 #include <stdio.h>
+
 #include "stdlib.h"
 
-void promptDelim(InputHandler const *pHandler) {
-    fprintf(stdout, "Path: %s \n", pHandler->path->currentDir);
+void promptDelim(InputHandler const* pHandler) {
     fprintf(stdout, "%s", "> ");
     fflush(stdout);
 }
-
 
 void recoverableError(char* message) {
     fprintf(stdout, "%s", message);

@@ -5,8 +5,6 @@
 #ifndef JSHELL_UTILS_H
 #define JSHELL_UTILS_H
 
-
 char *getCurrentDirectory();
-
 
 #endif  // JSHELL_UTILS_H
