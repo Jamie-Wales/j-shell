@@ -6,21 +6,20 @@
 #define SHELL_INPUT_H
 #include <stdio.h>
 
-
 typedef struct InputHandler InputHandler;
 
 struct InputHandler {
-    void (*getInput)(InputHandler *pHandler);
-    char *line;
+    void (*getInput)(InputHandler* pHandler);
+    char* line;
     size_t size;
-    void (*getLine)(InputHandler *pHandler);
-    char **tokenisedInput;
-    void (*tokenise)(InputHandler *pHandler);
+    void (*getLine)(InputHandler* pHandler);
+    char** tokenisedInput;
+    void (*tokenise)(InputHandler* pHandler);
     int tokenInputSize;
 };
 
 InputHandler getInputHandler();
 
-void destructInputHandler(InputHandler const *pHandler);
+void destructInputHandler(InputHandler* pHandler);
 
 #endif  // SHELL_INPUT_H

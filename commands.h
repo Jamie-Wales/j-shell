@@ -5,6 +5,7 @@
 #ifndef JSHELL_COMMANDS_H
 #define JSHELL_COMMANDS_H
 #include "input.h"
+
 void parseCommand(InputHandler const *pHandler);
 void ls(InputHandler const *pHandler);
 void cd(InputHandler const *pHandler);

@@ -18,17 +18,16 @@ Path getPath() {
     getcwd(path, path_size);
 
     Path output = {
-    .currentDir  = (char *) malloc(strlen(path)),
+        .currentDir = (char*)calloc(strlen(path), sizeof(char)),
     };
 
-    strncpy(output.currentDir, path, BUFF_SIZE);
+    strcpy(output.currentDir, path);
 
     return output;
-
 }
 
-void updateCurrentDirectory(Path *path, char *newPath) {
-    char *temp = realloc(path->currentDir, strlen(newPath) + 1);
+void updateCurrentDirectory(Path* path, char* newPath) {
+    char* temp = realloc(path->currentDir, strlen(newPath) + 1);
     if (temp != NULL) {
         path->currentDir = temp;
         strcpy(path->currentDir, newPath);
@@ -39,9 +38,9 @@ void updateCurrentDirectory(Path *path, char *newPath) {
 }
 
 
-void destructPath(Path *path) {
+void destructPath(Path* path) {
     if (path != NULL) {
-        free(path->currentDir);  // Free the string memory
-        free(path);              // Free the struct memory
+        free(path->currentDir); // Free the string memory
+        free(path);             // Free the struct memory
     }
 }

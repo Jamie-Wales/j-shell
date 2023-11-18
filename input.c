@@ -18,15 +18,15 @@ void getLine(InputHandler *pHandler) {
 }
 
 void tokenise(InputHandler *pHandler) {
-    char *delims = " \t\r\n";
+    const char *delims = " \t\r\n";
     pHandler->tokenisedInput = (char **)calloc(sizeof(char *), 15);
-    char *token = strtok(pHandler->line, delims);
+    const char *token = strtok(pHandler->line, delims);
     char **head = pHandler->tokenisedInput;
     int count = 0;
 
     while (token != NULL) {
-        int tokenSize = strlen(token);
-        *(head) = (char *)malloc(tokenSize);
+        const int tokenSize = strlen(token);
+        *head = (char *)malloc(tokenSize);
         strncpy(*(head), token, tokenSize);
         head++;
         count++;
@@ -37,7 +37,7 @@ void tokenise(InputHandler *pHandler) {
 }
 
 InputHandler getInputHandler() {
-    InputHandler handler = {.getInput = getInput,
+   const InputHandler handler = {.getInput = getInput,
                             .tokenise = tokenise,
                             .getLine = getLine,
                             .line = NULL,
@@ -46,8 +46,8 @@ InputHandler getInputHandler() {
     return handler;
 }
 
-void destructInputHandler(InputHandler const *pHandler) {
+void destructInputHandler(InputHandler *pHandler) {
     free(pHandler->line);
     free(pHandler->tokenisedInput);
-    free(pHandler);
+
 }
