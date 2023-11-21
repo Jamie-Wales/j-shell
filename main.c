@@ -5,19 +5,17 @@
 #include "commands.h"
 #include "input.h"
 #include "output.h"
-#include "path.h"
+#include "utils.h"
 
 int main() {
     InputHandler inputHandler = getInputHandler();
-    Path path = getPath();
-
 
     while (true) {
+        printf("current dir -> %s\n", inputHandler.path->currentDir);
         promptDelim(&inputHandler);
         inputHandler.getInput(&inputHandler);
         parseCommand(&inputHandler);
     }
-
     exitProgram(EXIT_SUCCESS);
 }
 

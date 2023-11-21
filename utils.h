@@ -6,5 +6,5 @@
 #define JSHELL_UTILS_H
 
 char *getCurrentDirectory();
-
+void aliasHandler();
 #endif  // JSHELL_UTILS_H

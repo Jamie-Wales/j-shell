@@ -4,7 +4,6 @@
 
 #define LINUX "gcc"
 #define OSX "clang"
-#include <sys/errno.h>
 
 enum { BUFF_SIZE = 1024 };
 
@@ -13,7 +12,6 @@ enum { BUFF_SIZE = 1024 };
 
 #include <stdbool.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <unistd.h>
@@ -47,20 +45,22 @@ void executeCommand(const CommandFunc command, const InputHandler* pHandler) {
     }
 }
 
-void executeParent(CommandFunc commandChild, CommandFunc commandParent,
-                   const InputHandler* pHandler) {
+
+void executeParentCommand(const CommandFunc parent, const InputHandler* pHandler, const CommandFunc child) {
+    int status = -1;
     const pid_t pid = fork();
     if (pid == 0) {
         // Child process
-        commandChild(pHandler);
-        _exit(EXIT_SUCCESS);
+        child(pHandler);
+        exit(EXIT_SUCCESS);
         // Ensure the child process exits after executing the command
     }
-
     if (pid > 0) {
         // Parent process
-        commandParent(pHandler);
-        waitpid(pid, NULL, 0);
+        waitpid(pid, &status, 0);
+        if (status == 0) {
+            parent(pHandler);
+        }
     } else {
         // Fork failed
         perror("fork");
@@ -68,8 +68,9 @@ void executeParent(CommandFunc commandChild, CommandFunc commandParent,
     }
 }
 
-void help() {
 
+
+void help() {
     const char* helpText =
         "Welcome to J-shell, a custom shell built by Jamie Wales\n"
         "Custom Shell Commands Help:\n"
@@ -89,21 +90,10 @@ void help() {
         "Appending the output to a file is done using '>>'.\n"
         "Example: command >> file.txt\n\n"
         "Pipes allow the output of one command to be used as input for another.\n"
-        "Example: command1 | command2\n\n"
-        "Advanced Usage:\n"
-        "---------------\n"
-        "checkBin - Executes a binary file. This is an internal function.\n"
-        "           Usage: checkBin binaryName\n\n"
-        "Note: Some commands like 'cd' and 'run' have special functionalities\n"
-        "      integrated into the shell and can handle additional operations like\n"
-        "      output redirection and piping.";
-
+        "Example: command1 | command2\n\n";
 
     printf("%s", helpText);
-
 }
-
-
 
 
 void redirect(char* file) {
@@ -119,11 +109,24 @@ void redirect(char* file) {
     close(fd); // Close the original file descriptor
 }
 
-void cd(const InputHandler* pHandler) {
-    printf("cd");
+void checkDir(InputHandler* pHandler) {
+    if (pHandler->tokenInputSize < 2) {
+        recoverableError("Please enter valid directory\n");
+        exit(EXIT_FAILURE);
+    }
+    if (chdir(pHandler->tokenisedInput[1]) != 0) {
+        recoverableError("Please enter valid directory\n");
+        exit(EXIT_FAILURE);
+    }
+    exit(EXIT_SUCCESS);
 }
 
-void checkBin(const InputHandler* pHandler) {
+
+
+void cd(InputHandler *pHandler) {
+    pHandler->updateCurrentDirecrtory(pHandler, pHandler->tokenisedInput[1]);
+}
+void checkBin(InputHandler* pHandler) {
     char* args[BUFF_SIZE] = {};
     int finalIndex = pHandler->tokenInputSize;
     for (int i = 0; i < pHandler->tokenInputSize; i++) {
@@ -139,15 +142,26 @@ void checkBin(const InputHandler* pHandler) {
 
         args[i] = pHandler->tokenisedInput[i];
     }
-    args[finalIndex] = NULL;
 
+    if (pHandler->tokenInputSize == 2) {
+        if (pHandler->tokenisedInput[1][0] == '-') {
+            args[finalIndex] = pHandler->path->currentDir;
+            finalIndex++;
+        }
+    } else if (pHandler->tokenInputSize == 1) {
+        args[finalIndex] = pHandler->path->currentDir;
+        finalIndex++;
+    }
+
+    args[finalIndex] = NULL;
     execvp(pHandler->tokenisedInput[0], args);
     perror("execvp");
     fprintf(stderr, "\n");
     exit(EXIT_FAILURE);
 }
 
-void parseCommand(const InputHandler* pHandler) {
+
+void parseCommand(InputHandler* pHandler) {
     if (pHandler->tokenInputSize == 0) {
         recoverableError("Please enter a valid command \n");
         return;
@@ -155,15 +169,23 @@ void parseCommand(const InputHandler* pHandler) {
 
     if (strcmp(pHandler->tokenisedInput[0], "exit") == 0) {
         exitProgram(EXIT_SUCCESS, pHandler);
+    } else if (strcmp(pHandler->tokenisedInput[0], "help") == 0) {
+        help();
     }
 
     char* commands[] = {"cd", "run", "help"};
-    CommandFunc commandFunctions[] = {cd, run, "help"};
+
+    CommandFunc commandFunctions[] = {cd, run, help, checkDir};
     bool isMatch = false;
 
     for (int i = 0; i < 3; i++) {
         if (strcmp(commands[i], pHandler->tokenisedInput[0]) == 0) {
-            executeCommand(commandFunctions[i], pHandler);
+            if (i == 0) {
+                executeParentCommand(commandFunctions[0], pHandler,commandFunctions[3]);
+            } else {
+                executeCommand(commandFunctions[i], pHandler);
+            }
+
             isMatch = true;
             break;
         }
@@ -174,7 +196,8 @@ void parseCommand(const InputHandler* pHandler) {
     }
 }
 
-void run(const InputHandler* pHandler) {
+void run(InputHandler* pHandler) {
+    recoverableError(pHandler->tokenisedInput[1]);
     if (access(pHandler->tokenisedInput[1], F_OK) != 0) {
         recoverableError("Cannot find file \n");
         _exit(EXIT_FAILURE);
@@ -186,15 +209,13 @@ void run(const InputHandler* pHandler) {
         execlp(OSX, OSX, pHandler->tokenisedInput[1], "-o", execName, NULL);
         // if this returns then an error has occurred
         recoverableError("Cannot compile file \n");
-
-        _exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
     if (pid > 0) {
         // parent process waiting for child process to complete compiling
         int status;
         waitpid(pid, &status, 0);
-
         if (status == 0) {
             fprintf(stdout, "Compilation successful. Running -> %s \n",
                     execName);
@@ -202,7 +223,6 @@ void run(const InputHandler* pHandler) {
             int pipe_fds[2];
             pipe(pipe_fds);
             const pid_t run_pid = fork();
-
             if (run_pid == 0) {
                 dup2(pipe_fds[1], STDOUT_FILENO);
                 close(pipe_fds[0]); // close the read in child process
@@ -210,7 +230,8 @@ void run(const InputHandler* pHandler) {
                 // again if this returns we've had an error
                 recoverableError("excl error \n");
                 _exit(EXIT_FAILURE);
-            } else if (run_pid > 0) {
+            }
+            if (run_pid > 0) {
                 close(pipe_fds[1]);
                 char buffer[BUFF_SIZE];
                 ssize_t bytes_read = BUFF_SIZE;
@@ -224,12 +245,12 @@ void run(const InputHandler* pHandler) {
                 waitpid(run_pid, NULL, 0);
             } else {
                 recoverableError("Compilation error \n");
-                _exit(EXIT_FAILURE);
+                exit(EXIT_FAILURE);
             }
         } else {
             recoverableError("Fork error \n");
-            _exit(EXIT_FAILURE);
+            exit(EXIT_FAILURE);
         }
-        _exit(EXIT_SUCCESS);
+        exit(EXIT_SUCCESS);
     }
 }

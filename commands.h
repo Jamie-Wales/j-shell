@@ -6,10 +6,10 @@
 #define JSHELL_COMMANDS_H
 #include "input.h"
 
-void parseCommand(InputHandler const *pHandler);
-void ls(InputHandler const *pHandler);
-void cd(InputHandler const *pHandler);
+void parseCommand(InputHandler *pHandler);
+void ls(InputHandler *pHandler);
+void cd(InputHandler *pHandler);
 void exitProgram();
-void run(InputHandler const *pHandler);
+void run(InputHandler *pHandler);
 
 #endif  // JSHELL_COMMANDS_H

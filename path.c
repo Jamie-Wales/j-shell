@@ -6,41 +6,34 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "output.h"
 #define BUFF_SIZE 1024
 
 
-Path getPath() {
-    size_t path_size = BUFF_SIZE;
+
+
+void updateCurrentDirectory(InputHandler *pHandler, const char* newPath) {
+    char *pOldPath = pHandler->path->currentDir;
+    pHandler->path->currentDir = malloc(sizeof(strlen(newPath)));
+    free(pOldPath);
+    if (pHandler->path->currentDir == NULL) {
+        unrecoverableError("Memory allocation failure");
+    }
+    strcpy(pHandler->path->currentDir, newPath);
+}
+
+
+
+Path* getPath() {
     char path[BUFF_SIZE];
-    getcwd(path, path_size);
-
-    Path output = {
-        .currentDir = (char*)calloc(strlen(path), sizeof(char)),
-    };
-
-    strcpy(output.currentDir, path);
+    strcpy(path, getenv("HOME"));
+    Path *output = malloc(sizeof(Path));
+    output->currentDir = (char*)calloc(strlen(path) + 1, sizeof(char));
+    output->home = (char *)calloc (strlen(path)+ 1, sizeof(char));
+    strcpy(output->currentDir, path);
+    strcpy(output->home, path);
 
     return output;
 }
 
-void updateCurrentDirectory(Path* path, char* newPath) {
-    char* temp = realloc(path->currentDir, strlen(newPath) + 1);
-    if (temp != NULL) {
-        path->currentDir = temp;
-        strcpy(path->currentDir, newPath);
-    } else {
-        // Handle realloc failure
-        unrecoverableError("Memory allocation failure");
-    }
-}
-
-
-void destructPath(Path* path) {
-    if (path != NULL) {
-        free(path->currentDir); // Free the string memory
-        free(path);             // Free the struct memory
-    }
-}

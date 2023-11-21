@@ -7,12 +7,13 @@
 
 typedef struct Path {
     char *currentDir;
+    char *home;
 } Path;
 
-Path getPath();
+
+Path *getPath();
 
 void destructPath(Path *path);
-void addToCurrentDir(Path *path, char *addedPath);
-void updateCurrentDirectory(Path *path, char *newPath);
+
 
 #endif  // JSHELL_PATH_H
