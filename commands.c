@@ -287,69 +287,68 @@ void parseCommand(InputHandler* pHandler) {
 // Function to compile and execute a C program.
 void run(InputHandler* pHandler) {
     // Check if the file name is provided
-    recoverableError(pHandler->tokenisedInput[1]);
-    if (access(pHandler->tokenisedInput[1], F_OK) != 0) {
-        recoverableError("Cannot find file \n");
-        exit(EXIT_FAILURE);
+    if (pHandler->tokenInputSize < 2 || pHandler->tokenisedInput[1] == NULL) {
+        recoverableError("Error: No file specified for the run command.\n");
+        return;  // Return to avoid further processing
     }
 
-
+    if (access(pHandler->tokenisedInput[1], F_OK) != 0) {
+        recoverableError("Error: Specified file does not exist.\n");
+        return;
+    }
 
     char* execName = "output";
-    // Fork a process to compile the program
     const pid_t pid = fork();
 
     if (pid == 0) {
         // Child process: compile the program
         execlp(OSX, OSX, pHandler->tokenisedInput[1], "-o", execName, NULL);
         // If execlp returns, an error has occurred
-        recoverableError("Cannot compile file \n");
-        exit(EXIT_FAILURE);
+        recoverableError("Error: Compilation failed.\n");
+        _exit(EXIT_FAILURE);  // Use _exit in child processes
+    } else if (pid < 0) {
+        // Fork failed
+        recoverableError("Error: Unable to fork the process for compilation.\n");
+        return;
     }
 
     // Parent process: wait for the compilation to complete
-    if (pid > 0) {
-        int status;
-        waitpid(pid, &status, 0);
-        // Check if compilation was successful
-        if (status == 0) {
-            fprintf(stdout, "Compilation successful. Running -> %s \n", execName);
-            fflush(stdout);
+    int status;
+    waitpid(pid, &status, 0);
 
-            // Set up a pipe to capture output of the executed program
-            int pipe_fds[2];
-            pipe(pipe_fds);
-            const pid_t run_pid = fork();
-            if (run_pid == 0) {
-                // Child process: execute the compiled program
-                dup2(pipe_fds[1], STDOUT_FILENO); // Redirect STDOUT to the pipe
-                close(pipe_fds[0]); // Close the read end in the child process
-                execl(execName, execName, NULL);
-                // If execl returns, an error has occurred
-                recoverableError("exec error \n");
-                exit(EXIT_FAILURE);
-            }
+    // Check if compilation was successful
+    if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+        fprintf(stdout, "Compilation successful. Running -> %s \n", execName);
+        fflush(stdout);
 
-            // Parent process: read and print the output from the executed program
-            if (run_pid > 0) {
-                close(pipe_fds[1]); // Close the write end in the parent process
-                char buffer[BUFF_SIZE];
-                ssize_t bytes_read = BUFF_SIZE;
-                while ((bytes_read = read(pipe_fds[0], buffer, sizeof(buffer) - 1)) > 0) {
-                    buffer[bytes_read] = '\0';
-                    fprintf(stdout, "%s \n", buffer);
-                    fflush(stdout);
-                }
-                close(pipe_fds[0]);
-                waitpid(run_pid, NULL, 0);
-            } else {
-                recoverableError("Compilation error \n");
-                exit(EXIT_FAILURE);
-            }
-        } else {
-            recoverableError("Fork error \n");
-            exit(EXIT_FAILURE);
+        // Set up a pipe to capture output of the executed program
+        int pipe_fds[2];
+        pipe(pipe_fds);
+        const pid_t run_pid = fork();
+
+        if (run_pid == 0) {
+            dup2(pipe_fds[1], STDOUT_FILENO);
+            close(pipe_fds[0]);
+            execl(execName, execName, NULL);
+            recoverableError("Error: Failed to execute the compiled program.\n");
+            _exit(EXIT_FAILURE);
+        } else if (run_pid < 0) {
+            recoverableError("Error: Unable to fork the process for executing the program.\n");
+            return;
         }
-        exit(EXIT_SUCCESS);
+
+        close(pipe_fds[1]);
+        char buffer[BUFF_SIZE];
+        ssize_t bytes_read;
+
+        while ((bytes_read = read(pipe_fds[0], buffer, sizeof(buffer) - 1)) > 0) {
+            buffer[bytes_read] = '\0';
+            fprintf(stdout, "%s", buffer);  // Remove \n to prevent double newlines
+        }
+
+        close(pipe_fds[0]);
+        waitpid(run_pid, NULL, 0);
+    } else {
+        recoverableError("Error: Compilation unsuccessful.\n");
     }
 }
