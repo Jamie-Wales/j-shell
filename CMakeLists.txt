@@ -13,4 +13,5 @@ add_executable(jShell main.c
         path.c
         utils.h
         utils.c
+        input.h
 )
