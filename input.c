@@ -22,12 +22,15 @@ void getLine(InputHandler* pHandler) {
 // Function to tokenize the input line into separate commands/arguments
 void tokenise(InputHandler* pHandler) {
     const char* delims = " \t\r\n";  // Delimiters for tokenizing
-    pHandler->tokenisedInput = (char**)calloc(sizeof(char*), 15);
+    pHandler->tokenisedInput = (char**)calloc(sizeof(char*), BUFFSIZE);
     char* token = strtok(pHandler->line, delims);
     char** head = pHandler->tokenisedInput;
     int count = 0;
 
     while (token != NULL) {
+        if (count > BUFFSIZE) {
+            unrecoverableError("Command too long");
+        }
         char* buffer = (char*)malloc(BUFFSIZE);
         // Handling special cases for '.' and '~'
         if (token[0] == '.') {
