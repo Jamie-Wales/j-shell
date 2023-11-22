@@ -5,6 +5,7 @@
 #include "output.h"
 #include <stdio.h>
 #include "stdlib.h"
+// Functions for handling output and errors in the shell
 
 void promptDelim(InputHandler const* pHandler) {
     fprintf(stdout, "\n");

@@ -7,7 +7,7 @@
 
 #include "input.h"
 
-// Function prototypes for handling output and errors in the shell
+// Functions for handling output and errors in the shell
 void recoverableError(char *errorMessage); // Function to handle recoverable errors
 void promptDelim(InputHandler const *pHandler); // Function to output the prompt delimiter
 void unrecoverableError(char *errorMessage); // Function to handle unrecoverable errors
