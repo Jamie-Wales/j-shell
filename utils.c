@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/unistd.h>
 #define BUFFSIZE 1024
+#include "signal.h"
 #include "output.h"
 
 // Signal handler for SIGINT (Ctrl+C)
