@@ -51,7 +51,6 @@ command=alias
 For example, to create an alias for listing files in long format:
 
 ``` bash
-Copy code
 ls=ls -l,
 ```
 
