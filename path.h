@@ -5,15 +5,13 @@
 #ifndef JSHELL_PATH_H
 #define JSHELL_PATH_H
 
+// Struct to hold information about paths used in the shell
 typedef struct Path {
-    char *currentDir;
-    char *home;
+    char *currentDir; // Current working directory
+    char *home;       // Home directory
 } Path;
 
+Path *getPath(); // Function to initialize and get a Path structure
 
-Path *getPath();
-
-void destructPath(Path *path);
-
-
+void destructPath(Path *path); // Function to free resources associated with a Path structure
 #endif  // JSHELL_PATH_H

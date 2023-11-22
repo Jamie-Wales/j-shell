@@ -7,17 +7,20 @@
 #include "stdlib.h"
 
 void promptDelim(InputHandler const* pHandler) {
-    fprintf(stdout, "%s", "> ");
+    fprintf(stdout, "\n");
+    fprintf(stdout, "Current j-Shell Directory -> :%s \n",
+            pHandler->path->currentDir);
     fflush(stdout);
+    printf("> ");
 }
 
 void recoverableError(char* message) {
-    fprintf(stdout, "%s", message);
-    fflush(stdout);
+    fprintf(stderr, "> %s\n", message);
+    fflush(stderr);
 }
 
 void unrecoverableError(char* message) {
-    fprintf(stdout, "%s", message);
+    fprintf(stdout, "> %s", message);
     fflush(stderr);
     exit(EXIT_FAILURE);
 }

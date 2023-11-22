@@ -1,22 +1,25 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <signal.h>
 #include "commands.h"
 #include "input.h"
 #include "output.h"
 #include "utils.h"
 
+
 int main() {
     InputHandler inputHandler = getInputHandler();
 
+    signal(SIGINT, sigintHandler);
+    signal(SIGQUIT, sigquitHandler);
+
+
     while (true) {
-        printf("current dir -> %s\n", inputHandler.path->currentDir);
         promptDelim(&inputHandler);
         inputHandler.getInput(&inputHandler);
         parseCommand(&inputHandler);
     }
-    exitProgram(EXIT_SUCCESS);
-}
 
-/* To do: destructor for inputhandler */
+
+}

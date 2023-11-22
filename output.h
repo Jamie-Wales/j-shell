@@ -4,11 +4,12 @@
 
 #ifndef JSHELL_OUTPUT_H
 #define JSHELL_OUTPUT_H
+
 #include "input.h"
 
-void recoverableError(char *errorMessage);
-void promptDelim(InputHandler const *pHandler);
-void unrecoverableError(char *errorMessage);
-
+// Function prototypes for handling output and errors in the shell
+void recoverableError(char *errorMessage); // Function to handle recoverable errors
+void promptDelim(InputHandler const *pHandler); // Function to output the prompt delimiter
+void unrecoverableError(char *errorMessage); // Function to handle unrecoverable errors
 
 #endif //JSHELL_OUTPUT_H

@@ -1,0 +1,33 @@
+
+
+cd /path/to/directory: Change the current working directory.
+File and Directory Management
+mkdir testdir: Create a new directory.
+rmdir testdir: Remove a directory.
+touch testfile: Create a new file.
+rm testfile: Remove a file.
+ls, ls -l, ls /path/to/directory: List files and directories.
+System Information
+
+pwd: Print the current working directory.
+whoami: Display the current user.
+date: Display the current date and time.
+Advanced Features
+Redirection and Piping
+
+command >> file.txt: Append output to a file.
+command1 | command2: Pipe output of one command to another.
+cat file.txt | grep "search text": Search within a file.
+Running External Programs
+
+./executable: Run an executable file.
+gcc file.c -o file && ./file: Compile and run a C program.
+Custom Commands and Error Handling
+
+run file.c: Test your custom command to compile and run C programs.
+Enter an invalid command and check if the shell handles it gracefully.
+Test signal handling with Ctrl+C and Ctrl+\ to see how your shell responds.
+Alias Functionality
+Alias Creation and Usage
+Create aliases using your custom method and test if they work as expected.
+alias ls='ls -l': Create an alias and use it.
