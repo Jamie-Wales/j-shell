@@ -28,13 +28,20 @@ void exitProgram(const int exit_type, const InputHandler* pHandler) {
 // Executes a command in a child process
 void executeCommand(const CommandFunc command, const InputHandler* pHandler) {
     const pid_t pid = fork();
+    int status;
+    waitpid(pid, &status, 0);
+
     if (pid == 0) { // Child process
+
         signal(SIGINT, sigintHandler);
         command(pHandler);
-
-        _exit(EXIT_SUCCESS);
+        exit(EXIT_SUCCESS);
     } else if (pid > 0) { // Parent process
-        waitpid(pid, NULL, 0);
+        if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+            recoverableError("Error executing ");
+            recoverableError(pHandler->tokenisedInput[0]);
+            return;
+        }
     } else { // Fork failed
         perror("fork");
         exit(EXIT_FAILURE);
@@ -137,15 +144,20 @@ void checkBin(InputHandler* pHandler) {
     // Handle commands with pipes
     if (pipePos != -1) {
         int pipefd[2];
-        if (pipe(pipefd) == -1) {
+        if (pipe(pipefd) == -1) { // Create pipe stdin stdout
             perror("pipe");
             exit(EXIT_FAILURE);
         }
 
+
+        int status1, status2;
+
+
+
         // Fork for the first part of the piped command
         pid_t pid1 = fork();
         if (pid1 == 0) {
-            // Redirect STDOUT to the pipe
+            // Redirect STDOUT to the pipe ofcommand 1
             dup2(pipefd[1], STDOUT_FILENO);
             close(pipefd[0]);
             close(pipefd[1]);
@@ -160,7 +172,7 @@ void checkBin(InputHandler* pHandler) {
         // Fork for the second part of the piped command
         pid_t pid2 = fork();
         if (pid2 == 0) {
-            // Redirect STDIN from the pipe
+            // Redirect STDIN from the pipe from pipe to command 2
             dup2(pipefd[0], STDIN_FILENO);
             close(pipefd[1]);
             close(pipefd[0]);
@@ -173,11 +185,23 @@ void checkBin(InputHandler* pHandler) {
             _exit(EXIT_SUCCESS);
         }
 
+
+
         // Close pipe in the parent process and wait for child processes
         close(pipefd[0]);
         close(pipefd[1]);
-        waitpid(pid1, NULL, 0);
-        waitpid(pid2, NULL, 0);
+        // Wait for the first child process
+        if (WIFEXITED(status1) && WEXITSTATUS(status1) != 0) {
+            recoverableError("Error in first part of piped command");
+            return;
+        }
+
+        // Wait for the second child process
+        waitpid(pid2, &status2, 0);
+        if (WIFEXITED(status2) && WEXITSTATUS(status2) != 0) {
+            recoverableError("Error in second part of piped command");
+            return;
+        }
     } else {
         // Handle commands without pipes (including redirection handling)
         char* args[BUFF_SIZE] = {};
@@ -208,7 +232,7 @@ void checkBin(InputHandler* pHandler) {
         args[finalIndex] = NULL;
         execvp(pHandler->tokenisedInput[0], args); // If this returns we have hit an error.
         perror("execvp");
-        fprintf(stderr, "\n");
+        recoverableError(": Cannot find binary");
         exit(EXIT_FAILURE);
     }
 }
@@ -268,6 +292,8 @@ void run(InputHandler* pHandler) {
         recoverableError("Cannot find file \n");
         exit(EXIT_FAILURE);
     }
+
+
 
     char* execName = "output";
     // Fork a process to compile the program
