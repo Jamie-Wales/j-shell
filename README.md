@@ -43,10 +43,13 @@ Custom Alias Configuration
 You can create custom aliases in `.jShell.txt` file in the following format:
 
 ```bash
-// Copy code
-`command=alias
-/For example, to create an alias for listing files in long format:
+
+command=alias
+
 ```
+
+For example, to create an alias for listing files in long format:
+
 ``` bash
 Copy code
 ls=ls -l,
